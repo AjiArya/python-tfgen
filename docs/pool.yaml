@@ -1,0 +1,6 @@
+kind: pool
+uri: <libvirt_uri>                                                # libvirt uri
+output: <true or false>                                           # show network UUID output (default: false)
+spec:
+  - name: <name>                                                  # pool name
+    path: <pool_path>                                             # pool directory path 

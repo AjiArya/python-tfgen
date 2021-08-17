@@ -1,0 +1,37 @@
+kind: vm
+uri: <libvirt_uri>                                                # libvirt uri
+output: <true or false>                                           # show network UUID output (default: false)
+spec:
+  - name: <libvirt_domain_name>                                   # domain Name
+    hostname: <os_hostname>                                       # os hostname
+    nested_enabled: true                                          # nested virtualization (default: false)
+    os: <os>                                                      # os distro: ["ubuntu", "redhat", "centos"]
+    vcpus: 1                                                      # vcpu(s) total (default: 1)
+    memory: <ram>                                                 # memory in specified unit. Example: 1G or 512M (default: 1G)
+    console: <libvirt_domain_console>                             # console type: ["vnc", "spice"] (default: vnc)
+    cloud_data:
+      users:
+        - name: root                                              # set user root
+          public_key:                                             # public key 
+            - ssh-rsa justexample user1@host1
+        - name: user1                                             # create user1 
+          password: strongpassword                                # set password
+          sudo: true                                              # sudo mode: ["true", "false", "passwd"] (default: false)
+    base_image:
+      storage_pool: isos                                          # base image storage pool name (default: default)
+      name: ubuntu-bionic.img                                     # base image volume name
+    disks:
+      storage_pool: vms                                           # default storage pool for domain (default: default)
+      disks:
+        - name: vm1-vda.qcow2                                     # primary disk
+          size: 10G                                               # disk size (default: 10G)
+          storage_pool: vms                                       # storage pool name 
+        - name: vm1-vdb.qcow2                                     # additional disk
+          size: 10G                                               # disk size (default: 10G)
+          storage_pool: vms                                       # storage pool name
+    networks:
+      - name: <libvirt_network_name>                              # libvirt network name
+        address: <network_with_prefix>                            # ip address (example: <ip>/<prefix> or 192.168.1.1/24)
+        mtu: <mtu>                                                # mtu (default: 1500)
+        gateway: <network_gw>                                     # gateway
+        dns: [<nameserver_address>]                               # dns Address (default: ['8.8.8.8', '1.1.1.1'])

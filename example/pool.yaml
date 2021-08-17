@@ -1,0 +1,8 @@
+kind: pool
+uri: qemu:///system
+output: true
+spec:
+  - name: test1
+    path: /root/test1
+  - name: test2
+    path: /root/test2

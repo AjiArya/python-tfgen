@@ -1,0 +1,62 @@
+terraform {
+  required_providers {
+    libvirt = {
+      source = "dmacvicar/libvirt"
+    }
+  }
+}
+
+provider "libvirt" {
+    {% if uri %}
+    uri = "{{ uri }}"
+    {% else %}
+    uri = "qemu:///system"
+    {% endif %}
+}
+
+{%- for network in spec %}
+
+
+resource "libvirt_network" "{{ network.name }}" {
+  name       = "{{ network.name }}"
+  mode       = "{{ network.mode | default("nat", true) }}"
+  {% if network.bridge is defined %}
+  bridge     = "{{ network.bridge }}"
+  {% endif %}
+  {% if network.dns is defined %}
+  domain     = "{{ network.dns }}"
+  {% endif %}
+  mtu        = {{ network.mtu | default(1500, true) }}
+  autostart  = {{ network.autostart | default (true, true) | lower }}
+  {% if network.addresses6 is defined %}
+  addresses = ["{{ network.addresses4 }}", "{{ network.addresses6 }}"]
+  {% else %}
+  addresses = ["{{ network.addresses4 }}"]
+  {%- endif %}
+
+  dhcp { 
+    enabled = {{ network.dhcp | default(true, true) | lower }}
+  }
+  {% if network.dnsmasq is defined %}
+
+  dnsmasq_options {
+  {% for dns in network.dnsmasq.options %}
+    options  {
+        option_name = "{{ dns.name }}" 
+        option_value = "{{ dns.value }}"
+    }
+  {% endfor %}
+  }
+  {% endif %}
+}
+
+{%- endfor %}
+{% if output %}
+{%- for network in spec %}
+
+
+output "{{ network.name }}_uuid" {
+  value = libvirt_network.{{ network.name }}.id
+}
+{%- endfor %}
+{%- endif %}

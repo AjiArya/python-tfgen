@@ -1,0 +1,17 @@
+kind: network
+uri: <libvirt_uri>                                                # libvirt uri
+output: <true or false>                                           # show network UUID output (default: false)
+spec:
+  - name: <network_name>                                          # libvirt network name
+    mode: <mode>                                                  # available options: "nat" (default), "none", "route", "bridge"
+    bridge: <bridge_name>                                         # bridge name shown on linux
+    dhcp: true                                                    # enable dhcp (default: true)
+    dns: <dns_local>                                              # local domain (optional)
+    addresses4: <ipv4_address>                                    # ipv4 address e.g. 192.168.1.1/24
+    addresses6: <ipv6_address>                                    # ipv6 address (optional) e.g. 2001:db8:ca2:2::1/64
+    mtu: <network_mtu>                                            # mtu (default: 1500)
+    autostart: <autostart>                                        # true or false (default: true)
+    dnsmasq:                                                      # dnsmasq is optional
+      options:                                                    # dnsmasq configuration
+        - name: <option_name>
+          value: <option_value>

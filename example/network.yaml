@@ -1,0 +1,18 @@
+kind: network
+uri: qemu:///system
+spec:
+  - name: tfgen-devel-net
+    mode: route
+    bridge: devel-bridge
+    dhcp: true
+    dns: "example.local"
+    addresses4: "172.16.0.0/24"
+    addresses6: "2001:db8:ca2:2::1/64"
+    mtu: 9000
+    autostart: true
+    dnsmasq:
+      options:
+        - name: server
+          value: 8.8.8.8
+        - name: address
+          value: /devel.id/172.16.0.1

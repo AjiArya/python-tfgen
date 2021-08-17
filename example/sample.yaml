@@ -1,0 +1,32 @@
+kind: vm
+uri: qemu+ssh://user@hostname/system
+spec:
+  - name: vm1 
+    hostname: vm1
+    nested_enabled: true
+    os: ubuntu
+    vcpus: 1
+    memory: 1G
+    console: vnc
+    cloud_data:
+      users:
+        - name: root
+          public_key:
+            - ssh-rsa changeme you@machine
+        - name: user1
+          password: strongpassword
+          sudo: true
+    base_image:
+      storage_pool: vms
+      name: template-ubuntu.img
+    disks:
+      storage_pool: vms
+      disk_format: raw
+      disks:
+        - name: vm1-vda.qcow2
+          size: 10G
+    networks:
+      - name: net-192.168.10
+        address: 192.168.10.2/24
+        gateway: 192.168.10.1
+        dns: [8.8.8.8, 8.8.4.4]

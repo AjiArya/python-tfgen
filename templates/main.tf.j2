@@ -1,0 +1,128 @@
+terraform {
+  required_providers {
+    libvirt = {
+      source = "dmacvicar/libvirt"
+    }
+  }
+}
+
+provider "libvirt" {
+    {% if uri %}
+    uri = "{{ uri }}"
+    {% else %}
+    uri = "qemu:///system"
+    {% endif %}
+}
+{%- for vm in spec %}
+
+
+resource "libvirt_cloudinit_disk" "{{ vm.name }}-cloudinit" {
+    name = "{{ vm.name }}-cloudinit.iso"                   
+    pool = "{{ vm.disks.storage_pool | default("default", true) }}"
+    user_data = data.template_file.user{{ loop.index }}_data.rendered
+    network_config = data.template_file.network{{ loop.index }}_config.rendered
+}
+
+data "template_file" "user{{ loop.index }}_data" {         
+    template = file("${path.module}/user{{ loop.index }}_data.cfg")
+}
+     
+data "template_file" "network{{ loop.index }}_config" {
+    template = file("${path.module}/network{{ loop.index }}_config.cfg")
+}
+
+  {% for disks in vm.disks.disks %}
+    {% if loop.index == 1 %}
+resource "libvirt_volume" "{{ disks.name | replace(".qcow2", "") }}" {
+    name = "{{ disks.name }}"
+    pool = "{{ disks.storage_pool | default(vm.disks.storage_pool | default("default", true) , true) }}"
+    base_volume_name = "{{ vm.base_image.name }}"
+    base_volume_pool = "{{ vm.base_image.storage_pool }}"
+{% if 'G' in disks.size %}
+    size = "{{ disks.size.replace('G', '')|int * 1073741824 }}"
+{% elif 'M' in disks.size %}
+    size = "{{ disks.size.replace('M', '')|int * 1048576 }}"
+{% else %}
+    size = "10737418240"
+{% endif %}
+    format = "{{ disks.disk_format | default(vm.disks.disk_format | default("qcow2", true) , true) }}"
+}
+    {% else %}
+
+resource "libvirt_volume" "{{ disks.name | replace(".qcow2", "") }}" {
+    name = "{{ disks.name }}"
+    pool = "{{ disks.storage_pool | default(vm.disks.storage_pool | default("default", true) , true) }}"
+{% if 'G' in disks.size %}
+    size = "{{ disks.size.replace('G', '')|int * 1073741824 }}"
+{% elif 'M' in disks.size %}
+    size = "{{ disks.size.replace('M', '')|int * 1048576 }}"
+{% else %}
+    size = "10737418240"
+{% endif %}
+    format = "{{ disks.disk_format | default(vm.disks.disk_format | default("qcow2", true) , true) }}"
+}
+    {% endif %}
+  {%+ endfor %}
+
+resource "libvirt_domain" "{{ vm.name }}" {
+    name = "{{ vm.name }}"
+{% if 'G' in vm.memory %}
+    memory = "{{ vm.memory.replace('G', '')|int * 1024 }}"
+{% elif 'M' in vm.memory %}
+    memory = "{{ vm.memory.replace('M', '') }}"
+{% else %}
+    memory = "1024"
+{% endif %}
+    vcpu = "{{ vm.vcpus | default(1, true) }}"
+  {% if (vm.nested_enabled | default("false, true")) is sameas true %} 
+    cpu = {
+           mode = "host-passthrough"
+    }
+  {% endif %}
+
+    cloudinit = libvirt_cloudinit_disk.{{ vm.name }}-cloudinit.id
+
+    console {
+        type        = "pty"
+        target_port = "0"
+        target_type = "serial"
+    }
+
+    console {
+        type        = "pty"
+        target_port = "1"
+        target_type = "virtio"
+    }
+  {% for network in vm.networks %}
+
+    network_interface {
+        network_name = "{{ network.name }}"
+    {% if network.address is defined %}
+        addresses = ["{{ network.address[:-3] }}"]
+    {% endif %}
+    }
+  {% endfor %}
+  {% for disks in vm.disks.disks %}
+    
+    disk {
+        volume_id = libvirt_volume.{{ disks.name | replace(".qcow2", "") }}.id
+    }
+  {% endfor %}
+
+    graphics {
+        type = "{{ vm.console | default("vnc", true) }}"
+        listen_type = "address"
+        autoport = true
+    }
+}
+
+{%- endfor %}
+{% if output %}
+{%- for vm in spec %}
+
+
+output "{{ vm.name }}_uuid" {
+  value = libvirt_domain.{{ vm.name }}.id
+}
+{%- endfor %}
+{%- endif %}

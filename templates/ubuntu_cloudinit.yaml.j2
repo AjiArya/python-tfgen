@@ -1,0 +1,52 @@
+#cloud-config
+hostname: {{ hostname }}
+fqdn: {{ hostname }}
+users:
+{% for users in cloud_data.users %}
+  {% if users.name == 'root' %}
+  - name: {{ users.name }}
+    {% if users.public_key is defined %}
+    ssh_authorized_keys:
+    {% endif %}
+    {% for pubkeys in users.public_key %}
+      - {{ pubkeys }}
+    {% endfor %}
+    {% else %}
+  - name: {{ users.name }}
+    {% if users.public_key is defined %}
+    ssh_authorized_keys:
+    {% endif %}
+      {% for pubkeys in users.public_key %}
+      - {{ pubkeys }}
+      {% endfor %}
+    {% if users.sudo == true %}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    {% elif users.sudo == "passwd" %}
+    sudo: ['ALL=(ALL) ALL']
+    {% else %}
+    sudo: false
+    {% endif %}
+    shell: /bin/bash
+    groups: users
+    {% endif %}
+{% endfor %}
+ssh_pwauth: true
+disable_root: false
+{%- set ns = namespace(set_password=False) %}
+{% for users in cloud_data.users %}
+{% if users.password is defined %}
+  {% set ns.set_password = True %}
+{% endif %}
+{% endfor %}
+{% if ns.set_password == True %}
+
+chpasswd:
+  list:
+  {% for users in cloud_data.users %}
+  {% if users.password is defined %}
+    - {{ users.name }}:{{ users.password }}
+  {% endif -%}
+  {% endfor %}
+  expire: false
+
+{%- endif %}

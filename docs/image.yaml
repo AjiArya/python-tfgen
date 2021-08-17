@@ -1,0 +1,7 @@
+kind: image
+uri: <libvirt_uri>                                                # libvirt uri
+output: <true or false>                                           # show network UUID output (default: false)
+spec:
+  - name: <image_name>                                            # image name shown on pool
+    url: <image_url>                                              # image url e.g. https://cdimage.debian.org/images/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2
+    pool: <storage_pool>                                          # storage pool name

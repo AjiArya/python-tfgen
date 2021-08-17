@@ -1,0 +1,31 @@
+version: 1
+config:
+  {% for network in networks %}
+    {% if loop.index == 1 %}
+  - type: physical
+    name: eth0
+    mtu: {{ network.mtu | default(1500, true) }}
+    subnets:
+      - type: static
+        address: {{ network.address }}
+        gateway: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
+        dns_nameservers:
+          - {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+        routes:
+            - network: 0.0.0.0
+              netmask: 0.0.0.0
+              gateway: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
+    {%- else %}  
+  - type: physical
+    name: eth{{- loop.index0 }}
+    mtu: {{ network.mtu | default(1500, true) }}
+    {% if network.address is defined %}
+    subnets:
+      - type: static
+        address: {{ network.address }}
+        gateway: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
+        dns_nameservers:
+          - {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+    {%- endif %}
+    {%- endif %}
+  {%- endfor %}

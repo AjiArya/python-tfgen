@@ -1,0 +1,28 @@
+{% set count = namespace(value=4) %}
+version: 2
+ethernets:
+  {% for network in networks %}
+    {% if loop.index == 1 %}
+  ens3:
+    dhcp4: false
+    mtu: {{ network.mtu | default(1500, true) }}
+    {% if network.address is defined %}
+    addresses:
+      - {{ network.address }}
+    {% endif %}
+    gateway4: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
+    nameservers:
+      addresses: {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+    {%- else %}  
+  ens{{- count.value }}:
+  {% set count.value = count.value + 1 %}
+    dhcp4: false
+    mtu: {{ network.mtu | default(1500, true) }}
+    {% if network.address is defined %}
+    addresses:
+      - {{ network.address }}
+    nameservers:
+      addresses: {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+    {%- endif %}
+    {%- endif %}  
+  {%- endfor %}

@@ -1,0 +1,35 @@
+terraform {
+  required_providers {
+    libvirt = {
+      source = "dmacvicar/libvirt"
+    }
+  }
+}
+
+provider "libvirt" {
+    {% if uri %}
+    uri = "{{ uri }}"
+    {% else %}
+    uri = "qemu:///system"
+    {% endif %}
+}
+
+{%- for pool in spec %}
+
+
+resource "libvirt_pool" "{{ pool.name }}" {
+  name = "{{ pool.name }}"
+  type = "dir"
+  path = "{{ pool.path }}"
+}
+
+{%- endfor %}
+{% if output %}
+{%- for pool in spec %}
+
+
+output "{{ pool.name }}_uuid" {
+  value = libvirt_pool.{{ pool.name }}.id
+}
+{%- endfor %}
+{%- endif %}

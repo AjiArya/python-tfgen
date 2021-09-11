@@ -9,8 +9,7 @@ config:
       - type: static
         address: {{ network.address }}
         gateway: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
-        dns_nameservers:
-          - {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+        dns_nameservers: {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
         routes:
             - network: 0.0.0.0
               netmask: 0.0.0.0
@@ -24,8 +23,7 @@ config:
       - type: static
         address: {{ network.address }}
         gateway: {{ network.gateway | default( network.address.split(".")[0:3] | join(".") ~ ".1" ) }}
-        dns_nameservers:
-          - {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
+        dns_nameservers: {{ network.dns | default("['8.8.8.8', '1.1.1.1']", true) }}
     {%- endif %}
     {%- endif %}
   {%- endfor %}

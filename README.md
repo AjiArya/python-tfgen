@@ -50,5 +50,5 @@ terraform apply -auto-approve
 
 6. Deleting libvirt resources
 ```bash
-terraform destro -auto-approve
+terraform destroy -auto-approve
 ```

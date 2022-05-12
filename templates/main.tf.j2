@@ -75,8 +75,8 @@ resource "libvirt_domain" "{{ vm.name }}" {
 {% endif %}
     vcpu = "{{ vm.vcpus | default(1, true) }}"
   {% if (vm.nested_enabled | default("false, true")) is sameas true %} 
-    cpu = {
-           mode = "host-passthrough"
+    cpu {
+        mode = "host-passthrough"
     }
   {% endif %}
 
